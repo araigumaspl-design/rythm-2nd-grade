@@ -81,7 +81,7 @@ footer{font-size:.75rem;color:#64748b;text-align:center;padding:8px 0 18px}
   <div class="wrap header-inner">
     <div>
       <h1>🎙️ 4トラック リズム録音スタジオ</h1>
-      <div class="sub">4拍カウントイン → 指定拍数録音 → 4トラック同期再生</div>
+      <div class="sub">4はくじゅんび → 指定拍数録音 → 4トラック同期再生</div>
     </div>
     <div id="secureBadge" class="badge">接続確認中</div>
   </div>
@@ -91,7 +91,7 @@ footer{font-size:.75rem;color:#64748b;text-align:center;padding:8px 0 18px}
   <section class="panel">
     <div class="controls">
       <div>
-        <div class="label">テンポ（BPM）</div>
+        <div class="label">テンポ</div>
         <div class="stepper">
           <button id="bpmDown" aria-label="テンポを下げる">−</button>
           <div class="value"><span id="bpmValue">100</span></div>
@@ -100,37 +100,31 @@ footer{font-size:.75rem;color:#64748b;text-align:center;padding:8px 0 18px}
       </div>
 
       <div>
-        <div class="label">録音の長さ</div>
+        <div class="label">ろくおんのながさ</div>
         <div class="seg" id="beatsSeg">
-          <button data-beats="4">4拍</button>
-          <button data-beats="8" class="active">8拍</button>
-          <button data-beats="16">16拍</button>
+          <button data-beats="4">4はく</button>
+          <button data-beats="8" class="active">8はく</button>
+          <button data-beats="16">16はく</button>
         </div>
       </div>
 
       <div>
-        <div class="label">録音中メトロノーム</div>
+        <div class="label">メトロノーム</div>
         <label class="switch">
-          <span>クリック音</span>
+          <span>おと</span>
           <input id="clickDuringRec" type="checkbox" checked>
         </label>
       </div>
 
-      <div>
-        <div class="label">録音データ</div>
-        <div class="switch">
-          <span>保存しない（RAMのみ）</span>
-          <span>✓</span>
-        </div>
-      </div>
     </div>
   </section>
 
   <section class="panel">
     <div class="transport">
-      <button id="unlockBtn" class="btn">🎤 マイクを有効化</button>
-      <button id="masterPlayBtn" class="btn primary" disabled>▶ 全トラック同時再生</button>
-      <button id="masterStopBtn" class="btn stop">■ 停止</button>
+      <button id="unlockBtn" class="btn">🎤 マイクをオン！</button>
+      <button id="masterPlayBtn" class="btn primary" disabled>▶ ぜんぶさいせい</button>
+      <button id="masterStopBtn" class="btn stop">■ とめる</button>
+      <button id="exportWavBtn" class="btn" disabled>💾 ほぞんする</button>
     </div>
     <div id="globalStatus" class="status">最初に「マイクを有効化」を押して、マイクの使用を許可してください。</div>
   </section>
@@ -138,7 +132,7 @@ footer{font-size:.75rem;color:#64748b;text-align:center;padding:8px 0 18px}
   <section id="tracks"></section>
 
   <footer>
-    録音はこのページ内のメモリだけに保持され、アップロード・ダウンロード・自動保存は行いません。ページを閉じると消えます。
+    録音途中のデータはこのページ内のメモリだけに保持されます。「完成作品をWAV保存」を押したときだけ、現在のおんりょう・ミュート設定を反映した完成音源を端末へ保存します。
   </footer>
 </main>
 
@@ -147,7 +141,7 @@ footer{font-size:.75rem;color:#64748b;text-align:center;padding:8px 0 18px}
     <div id="phase" class="phase">準備</div>
     <div id="bigcount" class="bigcount">4</div>
     <div id="beatrow" class="beatrow"></div>
-    <div id="smallnote" class="smallnote">テンポに合わせて準備してください</div>
+    <div id="smallnote" class="smallnote">テンポに あわせて じゅんび！</div>
   </div>
 </div>
 
@@ -240,14 +234,14 @@ function renderTracks(){
           <div class="badge-num">${t.id}</div>
           <div>
             <div class="track-name">トラック ${t.id}</div>
-            <span id="badge-${t.id}" class="badge">未録音</span>
+            <span id="badge-${t.id}" class="badge">まだ</span>
           </div>
         </div>
         <div class="track-buttons">
-          <button id="rec-${t.id}" class="smallbtn rec">● 録音</button>
-          <button id="play-${t.id}" class="smallbtn play" disabled>▶ 再生</button>
+          <button id="rec-${t.id}" class="smallbtn rec">● ろくおん</button>
+          <button id="play-${t.id}" class="smallbtn play" disabled>▶ これをさいせい</button>
           <button id="mute-${t.id}" class="smallbtn warn">🔊</button>
-          <button id="clear-${t.id}" class="smallbtn warn" disabled>削除</button>
+          <button id="clear-${t.id}" class="smallbtn warn" disabled>さくじょ</button>
         </div>
       </div>
       <div class="wave-wrap">
@@ -255,7 +249,7 @@ function renderTracks(){
         <canvas id="wave-${t.id}"></canvas>
       </div>
       <div class="track-foot">
-        <span>音量</span>
+        <span>おんりょう</span>
         <input id="vol-${t.id}" type="range" min="0" max="1" step="0.05" value="${t.volume}">
         <span id="time-${t.id}">0拍</span>
       </div>
@@ -326,21 +320,23 @@ function updateTrackUI(id){
   const play=$(`play-${id}`);
   const clear=$(`clear-${id}`);
   if(t.audioBuffer){
-    badge.textContent='録音完了';
+    badge.textContent='できた！';
     badge.className='badge done';
     play.disabled=false;
     clear.disabled=false;
-    $(`rec-${id}`).textContent='● 再録音';
+    $(`rec-${id}`).textContent='● ろくおん';
     $(`time-${id}`).textContent=`${recordBeats}拍`;
   }else{
-    badge.textContent='未録音';
+    badge.textContent='まだ';
     badge.className='badge';
     play.disabled=true;
     clear.disabled=true;
-    $(`rec-${id}`).textContent='● 録音';
+    $(`rec-${id}`).textContent='● ろくおん';
     $(`time-${id}`).textContent='0拍';
   }
-  $('masterPlayBtn').disabled = !tracks.some(x=>x.audioBuffer);
+  const hasRecorded = tracks.some(x=>x.audioBuffer);
+  $('masterPlayBtn').disabled = !hasRecorded;
+  $('exportWavBtn').disabled = !hasRecorded;
 }
 
 function buildBeatDots(count){
@@ -361,8 +357,8 @@ function setBeatDot(i){
 async function visualCountIn(){
   const overlay=$('overlay');
   overlay.classList.add('show');
-  $('phase').textContent='カウントイン';
-  $('smallnote').textContent='4拍後に録音が始まります';
+  $('phase').textContent='じゅんび';
+  $('smallnote').textContent='4はく後に録音が始まります';
   buildBeatDots(4);
 
   const interval=beatMs();
@@ -392,7 +388,7 @@ function scheduleClicks(count, startTime, duringRecording){
 
 function animateRecordingDots(durationMs){
   buildBeatDots(recordBeats);
-  $('phase').textContent='録音中';
+  $('phase').textContent='ろくおんちゅう';
   $('smallnote').textContent=`${recordBeats}拍で自動停止します`;
   $('bigcount').textContent='REC';
 
@@ -421,7 +417,7 @@ async function startRecording(id){
   try{
     await ensureMic();
     recBtn.disabled=true;
-    badge.textContent='準備中';
+    badge.textContent='じゅんびちゅう';
     badge.className='badge rec';
 
     // Count-in audio is scheduled sample-accurately.
@@ -445,9 +441,9 @@ async function startRecording(id){
       scheduleClicks(recordBeats,recordStartAudioTime,true);
     }
 
-    badge.textContent='録音中';
+    badge.textContent='ろくおんちゅう';
     badge.className='badge rec';
-    recBtn.textContent='● 録音中…';
+    recBtn.textContent='● ろくおん中…';
 
     const stopVisual=animateRecordingDots(durationMs);
     const progress=$(`progress-${id}`);
@@ -492,8 +488,8 @@ async function startRecording(id){
   }catch(e){
     console.error(e);
     $('overlay').classList.remove('show');
-    setStatus('録音に失敗しました: '+(e.message || e));
-    alert('録音に失敗しました。\n\n'+(e.message || e));
+    setStatus('ろくおんに しっぱいしました: '+(e.message || e));
+    alert('ろくおんに しっぱいしました。\n\n'+(e.message || e));
     updateTrackUI(id);
   }finally{
     recBtn.disabled=false;
@@ -584,7 +580,7 @@ function clearTrack(id){
   t.audioBuffer=null;
   drawEmpty(id);
   updateTrackUI(id);
-  setStatus(`トラック ${id} を削除しました。`);
+  setStatus(`トラック ${id} を けしたよ。`);
 }
 
 function setBpm(v){
@@ -605,29 +601,133 @@ $('beatsSeg').addEventListener('click',e=>{
 $('unlockBtn').addEventListener('click',async()=>{
   try{
     await ensureMic();
-    $('unlockBtn').textContent='🎤 マイク有効';
+    $('unlockBtn').textContent='🎤 マイクオン！';
     $('unlockBtn').disabled=true;
-    setStatus('マイクを使用できます。録音するトラックを選んでください。');
+    setStatus('マイクを つかえるよ。ろくおんする ところを えらんでね。');
   }catch(e){
-    setStatus('マイクを有効化できません: '+(e.message||e));
-    alert('マイクを有効化できません。\n\n'+(e.message||e));
+    setStatus('マイクを オンに できません: '+(e.message||e));
+    alert('マイクを オンに できません。\n\n'+(e.message||e));
   }
 });
 $('masterPlayBtn').addEventListener('click',playMaster);
 $('masterStopBtn').addEventListener('click',stopAllPlayback);
+$('exportWavBtn').addEventListener('click',exportWav);
+
+
+function audioBufferToWav(buffer){
+  const numChannels = buffer.numberOfChannels;
+  const sampleRate = buffer.sampleRate;
+  const bitDepth = 16;
+  const bytesPerSample = bitDepth / 8;
+  const blockAlign = numChannels * bytesPerSample;
+  const dataLength = buffer.length * blockAlign;
+  const arrayBuffer = new ArrayBuffer(44 + dataLength);
+  const view = new DataView(arrayBuffer);
+
+  function writeString(offset, str){
+    for(let i=0;i<str.length;i++) view.setUint8(offset+i, str.charCodeAt(i));
+  }
+
+  writeString(0,'RIFF');
+  view.setUint32(4,36+dataLength,true);
+  writeString(8,'WAVE');
+  writeString(12,'fmt ');
+  view.setUint32(16,16,true);
+  view.setUint16(20,1,true);
+  view.setUint16(22,numChannels,true);
+  view.setUint32(24,sampleRate,true);
+  view.setUint32(28,sampleRate*blockAlign,true);
+  view.setUint16(32,blockAlign,true);
+  view.setUint16(34,bitDepth,true);
+  writeString(36,'data');
+  view.setUint32(40,dataLength,true);
+
+  const channels = [];
+  for(let ch=0;ch<numChannels;ch++) channels.push(buffer.getChannelData(ch));
+
+  let offset=44;
+  for(let i=0;i<buffer.length;i++){
+    for(let ch=0;ch<numChannels;ch++){
+      let sample=Math.max(-1,Math.min(1,channels[ch][i]));
+      sample = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
+      view.setInt16(offset, sample, true);
+      offset += 2;
+    }
+  }
+  return arrayBuffer;
+}
+
+async function renderFinalMix(){
+  const available = tracks.filter(t=>t.audioBuffer && !t.muted);
+  if(!available.length) throw new Error('書き出せるトラックがありません。');
+
+  const sampleRate = Math.max(...available.map(t=>t.audioBuffer.sampleRate));
+  const maxDuration = Math.max(...available.map(t=>t.audioBuffer.duration));
+  const length = Math.ceil(maxDuration * sampleRate);
+
+  const offline = new OfflineAudioContext(2, length, sampleRate);
+
+  available.forEach(t=>{
+    const src=offline.createBufferSource();
+    const gain=offline.createGain();
+    src.buffer=t.audioBuffer;
+    gain.gain.value=t.volume;
+    src.connect(gain);
+    gain.connect(offline.destination);
+    src.start(0);
+  });
+
+  return await offline.startRendering();
+}
+
+async function exportWav(){
+  if(isBusy) return;
+  stopAllPlayback();
+
+  const btn=$('exportWavBtn');
+  const original=btn.textContent;
+  btn.disabled=true;
+  btn.textContent='WAV作成中…';
+  setStatus('現在のおんりょう・ミュート設定で完成作品をミックスしています。');
+
+  try{
+    const mixed=await renderFinalMix();
+    const wav=audioBufferToWav(mixed);
+    const blob=new Blob([wav],{type:'audio/wav'});
+    const url=URL.createObjectURL(blob);
+
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=`rhythm_${bpm}bpm_${recordBeats}beats.wav`;
+    a.style.display='none';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    setTimeout(()=>URL.revokeObjectURL(url),30000);
+    setStatus(`ほぞんできました（WAV / ${bpm} BPM / ${recordBeats}拍）。`);
+  }catch(e){
+    console.error(e);
+    setStatus('ほぞんに しっぱいしました: '+(e.message||e));
+    alert('ほぞんに しっぱいしました。\n\n'+(e.message||e));
+  }finally{
+    btn.textContent=original;
+    btn.disabled=!tracks.some(t=>t.audioBuffer);
+  }
+}
 
 function checkEnvironment(){
   const secure=window.isSecureContext;
   const badge=$('secureBadge');
   if(secure){
-    badge.textContent='HTTPS / 安全な接続';
+    badge.textContent='つかえるよ';
     badge.style.background='rgba(16,185,129,.16)';
     badge.style.color='#6ee7b7';
   }else{
-    badge.textContent='非HTTPS';
+    badge.textContent='マイクちゅうい';
     badge.style.background='rgba(225,29,72,.18)';
     badge.style.color='#fda4af';
-    setStatus('このページは安全な接続ではありません。iPadではマイクが使えない可能性があります。GitHub PagesのHTTPS URLから開いてください。');
+    setStatus('このページでは マイクが つかえないかもしれません。');
   }
 }
 
