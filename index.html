@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f172a">
+<title>4トラック リズム録音スタジオ</title>
+<style>
+:root{
+  --bg:#0f172a; --panel:#172033; --panel2:#1e293b; --line:#334155;
+  --text:#f8fafc; --muted:#94a3b8; --accent:#6366f1; --green:#10b981;
+  --red:#e11d48; --amber:#f59e0b; --blue:#38bdf8;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}
+body{min-height:100vh;padding-bottom:max(24px,env(safe-area-inset-bottom));touch-action:manipulation}
+button,input{font:inherit}
+button{-webkit-tap-highlight-color:transparent}
+.wrap{width:min(960px,94vw);margin:0 auto}
+header{position:sticky;top:0;z-index:20;background:rgba(15,23,42,.94);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.header-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0}
+h1{font-size:1.15rem;margin:0}
+.sub{font-size:.78rem;color:var(--muted);margin-top:3px}
+main{padding:18px 0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 10px 30px rgba(0,0,0,.15)}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(min-width:720px){.controls{grid-template-columns:repeat(4,1fr)}}
+.label{font-size:.75rem;color:var(--muted);margin-bottom:7px;font-weight:700}
+.stepper{display:flex;align-items:center;gap:8px}
+.stepper button,.seg button,.btn{border:0;border-radius:12px;font-weight:800}
+.stepper button{width:42px;height:42px;background:#273449;color:var(--text);font-size:1.25rem}
+.stepper .value{min-width:70px;text-align:center;font-weight:900;font-size:1.15rem}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;padding:10px 6px;background:#273449;color:#cbd5e1}
+.seg button.active{background:var(--accent);color:white}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#111827;border:1px solid var(--line);padding:10px 12px;border-radius:12px}
+.switch input{width:46px;height:26px}
+.transport{display:flex;gap:10px;flex-wrap:wrap}
+.btn{padding:13px 16px;color:white;background:#334155}
+.btn.primary{background:var(--green)}
+.btn.stop{background:#475569}
+.btn:disabled{opacity:.35}
+.status{margin-top:12px;padding:10px 12px;background:#0b1220;border-radius:12px;color:#cbd5e1;font-size:.85rem;border:1px solid #263244}
+.track{background:linear-gradient(135deg,#182236,#131c2c);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px}
+.track-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.track-title{display:flex;align-items:center;gap:10px}
+.badge-num{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--accent);font-weight:900}
+.track-name{font-weight:900}
+.badge{font-size:.7rem;padding:4px 8px;border-radius:999px;background:#273449;color:#cbd5e1}
+.badge.rec{background:rgba(225,29,72,.18);color:#fda4af;border:1px solid rgba(225,29,72,.45)}
+.badge.done{background:rgba(16,185,129,.16);color:#6ee7b7;border:1px solid rgba(16,185,129,.35)}
+.track-buttons{display:flex;gap:8px;flex-wrap:wrap}
+.smallbtn{border:0;border-radius:11px;padding:10px 12px;font-weight:800;background:#2a364b;color:white}
+.smallbtn.rec{background:var(--red)}
+.smallbtn.play{background:#4f46e5}
+.smallbtn.warn{background:#6b7280}
+.smallbtn:disabled{opacity:.3}
+.wave-wrap{position:relative;margin-top:12px;background:#0b1220;border:1px solid #263244;border-radius:12px;overflow:hidden}
+.progress{position:absolute;inset:0 auto 0 0;width:0;background:rgba(99,102,241,.18);pointer-events:none}
+canvas{display:block;width:100%;height:48px;position:relative;z-index:2}
+.track-foot{display:flex;align-items:center;gap:10px;margin-top:9px;color:var(--muted);font-size:.8rem}
+.track-foot input[type=range]{flex:1}
+.overlay{position:fixed;inset:0;z-index:100;background:rgba(2,6,23,.95);display:none;align-items:center;justify-content:center;padding:20px}
+.overlay.show{display:flex}
+.countbox{text-align:center;width:min(680px,94vw)}
+.phase{font-size:1.1rem;color:#a5b4fc;font-weight:900}
+.bigcount{font-size:clamp(5rem,26vw,11rem);font-weight:1000;line-height:1;margin:18px 0}
+.beatrow{display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
+.dot{width:26px;height:26px;border-radius:50%;background:#334155;border:2px solid #475569;transition:.08s}
+.dot.active{background:var(--amber);border-color:#fcd34d;transform:scale(1.18)}
+.dot.downbeat.active{background:var(--red);border-color:#fda4af}
+.smallnote{margin-top:14px;color:var(--muted);font-size:.88rem;line-height:1.5}
+footer{font-size:.75rem;color:#64748b;text-align:center;padding:8px 0 18px}
+.flash{animation:flash .18s ease}
+@keyframes flash{50%{filter:brightness(1.8)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap header-inner">
+    <div>
+      <h1>🎙️ 4トラック リズム録音スタジオ</h1>
+      <div class="sub">4拍カウントイン → 指定拍数録音 → 4トラック同期再生</div>
+    </div>
+    <div id="secureBadge" class="badge">接続確認中</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="panel">
+    <div class="controls">
+      <div>
+        <div class="label">テンポ（BPM）</div>
+        <div class="stepper">
+          <button id="bpmDown" aria-label="テンポを下げる">−</button>
+          <div class="value"><span id="bpmValue">100</span></div>
+          <button id="bpmUp" aria-label="テンポを上げる">＋</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="label">録音の長さ</div>
+        <div class="seg" id="beatsSeg">
+          <button data-beats="4">4拍</button>
+          <button data-beats="8" class="active">8拍</button>
+          <button data-beats="16">16拍</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="label">録音中メトロノーム</div>
+        <label class="switch">
+          <span>クリック音</span>
+          <input id="clickDuringRec" type="checkbox" checked>
+        </label>
+      </div>
+
+      <div>
+        <div class="label">録音データ</div>
+        <div class="switch">
+          <span>保存しない（RAMのみ）</span>
+          <span>✓</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="transport">
+      <button id="unlockBtn" class="btn">🎤 マイクを有効化</button>
+      <button id="masterPlayBtn" class="btn primary" disabled>▶ 全トラック同時再生</button>
+      <button id="masterStopBtn" class="btn stop">■ 停止</button>
+    </div>
+    <div id="globalStatus" class="status">最初に「マイクを有効化」を押して、マイクの使用を許可してください。</div>
+  </section>
+
+  <section id="tracks"></section>
+
+  <footer>
+    録音はこのページ内のメモリだけに保持され、アップロード・ダウンロード・自動保存は行いません。ページを閉じると消えます。
+  </footer>
+</main>
+
+<div id="overlay" class="overlay">
+  <div class="countbox">
+    <div id="phase" class="phase">準備</div>
+    <div id="bigcount" class="bigcount">4</div>
+    <div id="beatrow" class="beatrow"></div>
+    <div id="smallnote" class="smallnote">テンポに合わせて準備してください</div>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+const TRACK_COUNT = 4;
+const COUNT_IN_BEATS = 4;
+const BPM_MIN = 80;
+const BPM_MAX = 120;
+const BPM_STEP = 5;
+
+let bpm = 100;
+let recordBeats = 8;
+let audioCtx = null;
+let masterGain = null;
+let micStream = null;
+let isBusy = false;
+let activeSources = [];
+let masterPlaying = false;
+
+const tracks = Array.from({length: TRACK_COUNT}, (_,i) => ({
+  id:i+1,
+  audioBuffer:null,
+  volume:0.9,
+  muted:false,
+  source:null,
+  gain:null,
+  playing:false
+}));
+
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const beatMs = () => 60000 / bpm;
+
+function setStatus(text){ $('globalStatus').textContent = text; }
+
+function ensureAudioContext(){
+  if(!audioCtx){
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if(!Ctx) throw new Error('このブラウザはWeb Audio APIに対応していません。');
+    audioCtx = new Ctx();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0.95;
+    masterGain.connect(audioCtx.destination);
+  }
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+async function ensureMic(){
+  ensureAudioContext();
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    throw new Error('マイクAPIを利用できません。HTTPSでSafariから開いているか確認してください。');
+  }
+  if(!micStream || micStream.getTracks().every(t => t.readyState === 'ended')){
+    micStream = await navigator.mediaDevices.getUserMedia({
+      audio:{
+        echoCancellation:true,
+        noiseSuppression:true,
+        autoGainControl:true
+      }
+    });
+  }
+}
+
+function clickAt(time, accent=false, volume=0.16){
+  if(!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(accent ? 1200 : 800, time);
+  gain.gain.setValueAtTime(volume, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.07);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(time);
+  osc.stop(time + 0.08);
+}
+
+function renderTracks(){
+  const root = $('tracks');
+  root.innerHTML = '';
+  tracks.forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'track';
+    el.innerHTML = `
+      <div class="track-head">
+        <div class="track-title">
+          <div class="badge-num">${t.id}</div>
+          <div>
+            <div class="track-name">トラック ${t.id}</div>
+            <span id="badge-${t.id}" class="badge">未録音</span>
+          </div>
+        </div>
+        <div class="track-buttons">
+          <button id="rec-${t.id}" class="smallbtn rec">● 録音</button>
+          <button id="play-${t.id}" class="smallbtn play" disabled>▶ 再生</button>
+          <button id="mute-${t.id}" class="smallbtn warn">🔊</button>
+          <button id="clear-${t.id}" class="smallbtn warn" disabled>削除</button>
+        </div>
+      </div>
+      <div class="wave-wrap">
+        <div id="progress-${t.id}" class="progress"></div>
+        <canvas id="wave-${t.id}"></canvas>
+      </div>
+      <div class="track-foot">
+        <span>音量</span>
+        <input id="vol-${t.id}" type="range" min="0" max="1" step="0.05" value="${t.volume}">
+        <span id="time-${t.id}">0拍</span>
+      </div>
+    `;
+    root.appendChild(el);
+
+    $(`rec-${t.id}`).addEventListener('click', () => startRecording(t.id));
+    $(`play-${t.id}`).addEventListener('click', () => toggleSinglePlay(t.id));
+    $(`mute-${t.id}`).addEventListener('click', () => toggleMute(t.id));
+    $(`clear-${t.id}`).addEventListener('click', () => clearTrack(t.id));
+    $(`vol-${t.id}`).addEventListener('input', e => {
+      t.volume = Number(e.target.value);
+      if(t.gain && !t.muted && audioCtx) t.gain.gain.setValueAtTime(t.volume, audioCtx.currentTime);
+    });
+
+    drawEmpty(t.id);
+  });
+}
+
+function canvasSize(canvas){
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  const w = canvas.clientWidth || 600;
+  const h = canvas.clientHeight || 48;
+  canvas.width = Math.floor(w*dpr);
+  canvas.height = Math.floor(h*dpr);
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {ctx,w,h};
+}
+
+function drawEmpty(id){
+  const c = $(`wave-${id}`);
+  if(!c) return;
+  const {ctx,w,h} = canvasSize(c);
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle='#334155';
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(0,h/2);
+  ctx.lineTo(w,h/2);
+  ctx.stroke();
+}
+
+function drawWave(id){
+  const t = tracks[id-1];
+  if(!t.audioBuffer) return drawEmpty(id);
+  const c = $(`wave-${id}`);
+  const {ctx,w,h} = canvasSize(c);
+  const data = t.audioBuffer.getChannelData(0);
+  const step = Math.max(1, Math.floor(data.length / w));
+  const amp = h/2;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle='#818cf8';
+  for(let x=0;x<w;x++){
+    let min=1,max=-1;
+    const start=x*step;
+    const end=Math.min(data.length,start+step);
+    for(let i=start;i<end;i++){ const v=data[i]; if(v<min)min=v; if(v>max)max=v; }
+    const y1=(1+min)*amp;
+    const y2=(1+max)*amp;
+    ctx.fillRect(x,y1,1,Math.max(1,y2-y1));
+  }
+}
+
+function updateTrackUI(id){
+  const t=tracks[id-1];
+  const badge=$(`badge-${id}`);
+  const play=$(`play-${id}`);
+  const clear=$(`clear-${id}`);
+  if(t.audioBuffer){
+    badge.textContent='録音完了';
+    badge.className='badge done';
+    play.disabled=false;
+    clear.disabled=false;
+    $(`rec-${id}`).textContent='● 再録音';
+    $(`time-${id}`).textContent=`${recordBeats}拍`;
+  }else{
+    badge.textContent='未録音';
+    badge.className='badge';
+    play.disabled=true;
+    clear.disabled=true;
+    $(`rec-${id}`).textContent='● 録音';
+    $(`time-${id}`).textContent='0拍';
+  }
+  $('masterPlayBtn').disabled = !tracks.some(x=>x.audioBuffer);
+}
+
+function buildBeatDots(count){
+  const row=$('beatrow');
+  row.innerHTML='';
+  for(let i=0;i<count;i++){
+    const d=document.createElement('div');
+    d.className='dot' + (i%4===0 ? ' downbeat':'');
+    d.dataset.i=i;
+    row.appendChild(d);
+  }
+}
+
+function setBeatDot(i){
+  document.querySelectorAll('.dot').forEach((d,idx)=>d.classList.toggle('active',idx===i));
+}
+
+async function visualCountIn(){
+  const overlay=$('overlay');
+  overlay.classList.add('show');
+  $('phase').textContent='カウントイン';
+  $('smallnote').textContent='4拍後に録音が始まります';
+  buildBeatDots(4);
+
+  const interval=beatMs();
+  const start=performance.now();
+  for(let i=0;i<4;i++){
+    const target=start+i*interval;
+    const wait=Math.max(0,target-performance.now());
+    if(wait>0) await sleep(wait);
+    $('bigcount').textContent=String(i+1);
+    setBeatDot(i);
+    $('bigcount').classList.remove('flash');
+    void $('bigcount').offsetWidth;
+    $('bigcount').classList.add('flash');
+  }
+  const lastWait=Math.max(0,start+4*interval-performance.now());
+  if(lastWait>0) await sleep(lastWait);
+}
+
+function scheduleClicks(count, startTime, duringRecording){
+  const secPerBeat=60/bpm;
+  for(let i=0;i<count;i++){
+    const accent = i%4===0;
+    const vol = duringRecording ? 0.11 : 0.2;
+    clickAt(startTime+i*secPerBeat,accent,vol);
+  }
+}
+
+function animateRecordingDots(durationMs){
+  buildBeatDots(recordBeats);
+  $('phase').textContent='録音中';
+  $('smallnote').textContent=`${recordBeats}拍で自動停止します`;
+  $('bigcount').textContent='REC';
+
+  const start=performance.now();
+  const int=beatMs();
+  let raf=0;
+  function frame(){
+    const elapsed=performance.now()-start;
+    const beat=Math.min(recordBeats-1,Math.floor(elapsed/int));
+    setBeatDot(beat);
+    if(elapsed<durationMs) raf=requestAnimationFrame(frame);
+  }
+  raf=requestAnimationFrame(frame);
+  return ()=>cancelAnimationFrame(raf);
+}
+
+async function startRecording(id){
+  if(isBusy) return;
+  isBusy=true;
+  stopAllPlayback();
+
+  const t=tracks[id-1];
+  const recBtn=$(`rec-${id}`);
+  const badge=$(`badge-${id}`);
+
+  try{
+    await ensureMic();
+    recBtn.disabled=true;
+    badge.textContent='準備中';
+    badge.className='badge rec';
+
+    // Count-in audio is scheduled sample-accurately.
+    const cueStart=audioCtx.currentTime+0.12;
+    scheduleClicks(COUNT_IN_BEATS,cueStart,false);
+
+    // Visual count-in aligned closely with cue.
+    await visualCountIn();
+
+    const mime = pickMime();
+    const recorder = new MediaRecorder(micStream, mime ? {mimeType:mime}:undefined);
+    const chunks=[];
+
+    recorder.ondataavailable=e=>{ if(e.data && e.data.size) chunks.push(e.data); };
+
+    const durationMs = recordBeats * beatMs();
+    const durationSec = durationMs/1000;
+    const recordStartAudioTime = audioCtx.currentTime + 0.05;
+
+    if($('clickDuringRec').checked){
+      scheduleClicks(recordBeats,recordStartAudioTime,true);
+    }
+
+    badge.textContent='録音中';
+    badge.className='badge rec';
+    recBtn.textContent='● 録音中…';
+
+    const stopVisual=animateRecordingDots(durationMs);
+    const progress=$(`progress-${id}`);
+    const visualStart=performance.now();
+
+    function animateProgress(){
+      const p=Math.min(1,(performance.now()-visualStart)/durationMs);
+      progress.style.width=(p*100)+'%';
+      if(p<1) requestAnimationFrame(animateProgress);
+    }
+    requestAnimationFrame(animateProgress);
+
+    const stopped = new Promise((resolve,reject)=>{
+      recorder.onstop=async()=>{
+        try{
+          stopVisual();
+          const blob=new Blob(chunks,{type:recorder.mimeType || 'audio/mp4'});
+          const ab=await blob.arrayBuffer();
+          const decoded=await audioCtx.decodeAudioData(ab.slice(0));
+          t.audioBuffer=decoded;
+          drawWave(id);
+          resolve();
+        }catch(e){ reject(e); }
+      };
+      recorder.onerror=e=>reject(e.error || e);
+    });
+
+    // Start recorder shortly before scheduled record downbeat.
+    recorder.start();
+    const waitToTarget = Math.max(0,(recordStartAudioTime-audioCtx.currentTime)*1000);
+    if(waitToTarget>0) await sleep(waitToTarget);
+    // Recording already active; target time is treated as musical zero.
+
+    await sleep(durationMs);
+    if(recorder.state==='recording') recorder.stop();
+    await stopped;
+
+    progress.style.width='0%';
+    $('overlay').classList.remove('show');
+    updateTrackUI(id);
+    setStatus(`トラック ${id} を ${bpm} BPM / ${recordBeats}拍で録音しました。`);
+  }catch(e){
+    console.error(e);
+    $('overlay').classList.remove('show');
+    setStatus('録音に失敗しました: '+(e.message || e));
+    alert('録音に失敗しました。\n\n'+(e.message || e));
+    updateTrackUI(id);
+  }finally{
+    recBtn.disabled=false;
+    isBusy=false;
+  }
+}
+
+function pickMime(){
+  if(typeof MediaRecorder==='undefined') return '';
+  const list=['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/aac'];
+  for(const m of list) if(MediaRecorder.isTypeSupported(m)) return m;
+  return '';
+}
+
+function stopTrack(t){
+  if(t.source){
+    try{t.source.stop()}catch{}
+    t.source=null;
+  }
+  t.playing=false;
+  $(`progress-${t.id}`).style.width='0%';
+}
+
+function playTrack(t, startTime=null, master=false){
+  if(!t.audioBuffer || !audioCtx) return;
+  const src=audioCtx.createBufferSource();
+  const gain=audioCtx.createGain();
+  src.buffer=t.audioBuffer;
+  gain.gain.value=t.muted?0:t.volume;
+  src.connect(gain);
+  gain.connect(masterGain);
+  t.source=src;
+  t.gain=gain;
+  t.playing=true;
+
+  const start = startTime ?? (audioCtx.currentTime+0.03);
+  const duration=t.audioBuffer.duration;
+  const visStart=performance.now()+Math.max(0,(start-audioCtx.currentTime)*1000);
+  function anim(){
+    if(!t.playing) return;
+    const p=Math.min(1,(performance.now()-visStart)/(duration*1000));
+    if(p>=0) $(`progress-${t.id}`).style.width=(Math.max(0,p)*100)+'%';
+    if(p<1) requestAnimationFrame(anim);
+  }
+  requestAnimationFrame(anim);
+  src.onended=()=>{ t.playing=false; $(`progress-${t.id}`).style.width='0%'; };
+  src.start(start);
+  if(master) activeSources.push(src);
+}
+
+function toggleSinglePlay(id){
+  const t=tracks[id-1];
+  ensureAudioContext();
+  if(t.playing){ stopTrack(t); return; }
+  stopAllPlayback();
+  playTrack(t);
+}
+
+function playMaster(){
+  if(isBusy) return;
+  ensureAudioContext();
+  stopAllPlayback();
+  const valid=tracks.filter(t=>t.audioBuffer && !t.muted);
+  if(!valid.length) return;
+  masterPlaying=true;
+  const start=audioCtx.currentTime+0.08;
+  valid.forEach(t=>playTrack(t,start,true));
+  setStatus('録音済みトラックを同時再生中。');
+}
+
+function stopAllPlayback(){
+  masterPlaying=false;
+  activeSources.forEach(s=>{try{s.stop()}catch{}});
+  activeSources=[];
+  tracks.forEach(stopTrack);
+}
+
+function toggleMute(id){
+  const t=tracks[id-1];
+  t.muted=!t.muted;
+  $(`mute-${id}`).textContent=t.muted?'🔇':'🔊';
+  if(t.gain && audioCtx) t.gain.gain.setValueAtTime(t.muted?0:t.volume,audioCtx.currentTime);
+}
+
+function clearTrack(id){
+  const t=tracks[id-1];
+  stopTrack(t);
+  t.audioBuffer=null;
+  drawEmpty(id);
+  updateTrackUI(id);
+  setStatus(`トラック ${id} を削除しました。`);
+}
+
+function setBpm(v){
+  bpm=Math.max(BPM_MIN,Math.min(BPM_MAX,v));
+  $('bpmValue').textContent=bpm;
+}
+$('bpmDown').addEventListener('click',()=>setBpm(bpm-BPM_STEP));
+$('bpmUp').addEventListener('click',()=>setBpm(bpm+BPM_STEP));
+
+$('beatsSeg').addEventListener('click',e=>{
+  const btn=e.target.closest('button[data-beats]');
+  if(!btn) return;
+  recordBeats=Number(btn.dataset.beats);
+  document.querySelectorAll('#beatsSeg button').forEach(b=>b.classList.toggle('active',b===btn));
+  tracks.forEach(t=>{ if(t.audioBuffer) $(`time-${t.id}`).textContent=`${recordBeats}拍`; });
+});
+
+$('unlockBtn').addEventListener('click',async()=>{
+  try{
+    await ensureMic();
+    $('unlockBtn').textContent='🎤 マイク有効';
+    $('unlockBtn').disabled=true;
+    setStatus('マイクを使用できます。録音するトラックを選んでください。');
+  }catch(e){
+    setStatus('マイクを有効化できません: '+(e.message||e));
+    alert('マイクを有効化できません。\n\n'+(e.message||e));
+  }
+});
+$('masterPlayBtn').addEventListener('click',playMaster);
+$('masterStopBtn').addEventListener('click',stopAllPlayback);
+
+function checkEnvironment(){
+  const secure=window.isSecureContext;
+  const badge=$('secureBadge');
+  if(secure){
+    badge.textContent='HTTPS / 安全な接続';
+    badge.style.background='rgba(16,185,129,.16)';
+    badge.style.color='#6ee7b7';
+  }else{
+    badge.textContent='非HTTPS';
+    badge.style.background='rgba(225,29,72,.18)';
+    badge.style.color='#fda4af';
+    setStatus('このページは安全な接続ではありません。iPadではマイクが使えない可能性があります。GitHub PagesのHTTPS URLから開いてください。');
+  }
+}
+
+window.addEventListener('resize',()=>tracks.forEach(t=>t.audioBuffer?drawWave(t.id):drawEmpty(t.id)));
+window.addEventListener('pagehide',()=>{
+  if(micStream) micStream.getTracks().forEach(t=>t.stop());
+});
+
+renderTracks();
+checkEnvironment();
+})();
+</script>
+</body>
+</html>
