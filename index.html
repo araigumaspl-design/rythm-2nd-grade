@@ -250,7 +250,7 @@ function renderTracks(){
       <div class="track-foot">
         <span>おんりょう</span>
         <input id="vol-${t.id}" type="range" min="0" max="1" step="0.05" value="${t.volume}">
-        <span id="time-${t.id}">0拍</span>
+        
       </div>
     `;
     root.appendChild(el);
@@ -324,14 +324,14 @@ function updateTrackUI(id){
     play.disabled=false;
     clear.disabled=false;
     $(`rec-${id}`).textContent='● ろくおん';
-    $(`time-${id}`).textContent=`${recordBeats}拍`;
+
   }else{
     badge.textContent='まだ';
     badge.className='badge';
     play.disabled=true;
     clear.disabled=true;
     $(`rec-${id}`).textContent='● ろくおん';
-    $(`time-${id}`).textContent='0拍';
+
   }
   const hasRecorded = tracks.some(x=>x.audioBuffer);
   $('masterPlayBtn').disabled = !hasRecorded;
@@ -594,7 +594,7 @@ $('beatsSeg').addEventListener('click',e=>{
   if(!btn) return;
   recordBeats=Number(btn.dataset.beats);
   document.querySelectorAll('#beatsSeg button').forEach(b=>b.classList.toggle('active',b===btn));
-  tracks.forEach(t=>{ if(t.audioBuffer) $(`time-${t.id}`).textContent=`${recordBeats}拍`; });
+
 });
 
 $('unlockBtn').addEventListener('click',async()=>{
